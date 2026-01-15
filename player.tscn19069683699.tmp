@@ -1,0 +1,209 @@
+[gd_scene load_steps=41 format=3 uid="uid://csl2lau3vjc8a"]
+
+[ext_resource type="Script" uid="uid://dcllqn0031dtg" path="res://scripts/player.gd" id="1_b88wv"]
+[ext_resource type="Texture2D" uid="uid://b4kdlfxjhd6mx" path="res://animation/player/crouching/east/frame_000.png" id="2_pgbbb"]
+[ext_resource type="Texture2D" uid="uid://bbxcwaus5ej7o" path="res://animation/player/crouching/east/frame_001.png" id="3_331ug"]
+[ext_resource type="Texture2D" uid="uid://cu8rapph2ylbk" path="res://animation/player/crouching/east/frame_002.png" id="4_ny14h"]
+[ext_resource type="Texture2D" uid="uid://dhvdaridy4s1l" path="res://animation/player/crouching/east/frame_003.png" id="5_ibah8"]
+[ext_resource type="Texture2D" uid="uid://cvhm0f3bwyrke" path="res://animation/player/crouching/east/frame_004.png" id="6_3iwfv"]
+[ext_resource type="Texture2D" uid="uid://domc3c3f8a68x" path="res://animation/player/breathing-idle/east/frame_000.png" id="7_qwsg1"]
+[ext_resource type="Texture2D" uid="uid://bjs5qx32lbudh" path="res://animation/player/breathing-idle/east/frame_001.png" id="8_1xqrm"]
+[ext_resource type="Texture2D" uid="uid://cxfbufv0c0c87" path="res://animation/player/breathing-idle/east/frame_002.png" id="9_bfour"]
+[ext_resource type="Texture2D" uid="uid://chhl7rldrelqf" path="res://animation/player/breathing-idle/east/frame_003.png" id="10_8gr2b"]
+[ext_resource type="Texture2D" uid="uid://b5oqo0dy4k57c" path="res://animation/player/fight-stance-idle-8-frames/east/frame_000.png" id="11_vl8ci"]
+[ext_resource type="Texture2D" uid="uid://j8v380xxny6s" path="res://animation/player/fight-stance-idle-8-frames/east/frame_001.png" id="12_ieltc"]
+[ext_resource type="Texture2D" uid="uid://coohtop8yhl3b" path="res://animation/player/fight-stance-idle-8-frames/east/frame_002.png" id="13_fddr8"]
+[ext_resource type="Texture2D" uid="uid://cm6g87pbmjt3k" path="res://animation/player/fight-stance-idle-8-frames/east/frame_003.png" id="14_oybyf"]
+[ext_resource type="Texture2D" uid="uid://c03j0ifefxqus" path="res://animation/player/fight-stance-idle-8-frames/east/frame_004.png" id="15_ajfva"]
+[ext_resource type="Texture2D" uid="uid://8svdgcetrgvv" path="res://animation/player/fight-stance-idle-8-frames/east/frame_005.png" id="16_5ef02"]
+[ext_resource type="Texture2D" uid="uid://b77864uvoi0rk" path="res://animation/player/fight-stance-idle-8-frames/east/frame_006.png" id="17_pfmca"]
+[ext_resource type="Texture2D" uid="uid://cjahkjgcb2x7c" path="res://animation/player/fight-stance-idle-8-frames/east/frame_007.png" id="18_76oay"]
+[ext_resource type="Texture2D" uid="uid://dwhvkhqgnfc5g" path="res://animation/player/jumping-2/east/frame_000.png" id="19_b4uyv"]
+[ext_resource type="Texture2D" uid="uid://cjvcwb6tf6sb0" path="res://animation/player/jumping-2/east/frame_001.png" id="20_tw8ou"]
+[ext_resource type="Texture2D" uid="uid://cy7r0hs5bgnn1" path="res://animation/player/jumping-2/east/frame_002.png" id="21_ygbnx"]
+[ext_resource type="Texture2D" uid="uid://dthfesvpwhcrr" path="res://animation/player/jumping-2/east/frame_003.png" id="22_v2t6f"]
+[ext_resource type="Texture2D" uid="uid://bdgui3clwfwjr" path="res://animation/player/jumping-2/east/frame_004.png" id="23_l3lcn"]
+[ext_resource type="Texture2D" uid="uid://wdycsrhkb2lh" path="res://animation/player/jumping-2/east/frame_005.png" id="24_xry5e"]
+[ext_resource type="Texture2D" uid="uid://kfy2vmv1gn1y" path="res://animation/player/jumping-2/east/frame_006.png" id="25_h6w8y"]
+[ext_resource type="Texture2D" uid="uid://dkpd2saf0hasj" path="res://animation/player/jumping-2/east/frame_007.png" id="26_yem3p"]
+[ext_resource type="Texture2D" uid="uid://bsaohqkqr8gka" path="res://animation/player/walk/east/frame_000.png" id="27_86rna"]
+[ext_resource type="Texture2D" uid="uid://dx31o144kv1wh" path="res://animation/player/walk/east/frame_001.png" id="28_xg1a7"]
+[ext_resource type="Texture2D" uid="uid://dkpyrq7s5yjuq" path="res://animation/player/walk/east/frame_002.png" id="29_ob4mi"]
+[ext_resource type="Texture2D" uid="uid://1k5m2k5gr4jm" path="res://animation/player/walk/east/frame_003.png" id="30_ax26h"]
+[ext_resource type="Texture2D" uid="uid://cxnvkv3ng2uw0" path="res://animation/player/walk/east/frame_004.png" id="31_kh4g0"]
+[ext_resource type="Texture2D" uid="uid://njsm0l2pvlid" path="res://animation/player/walk/east/frame_005.png" id="32_mgmjd"]
+[ext_resource type="Texture2D" uid="uid://djvfkyqw6q8mq" path="res://animation/player/crouched-walking/east/frame_000.png" id="33_va2xi"]
+[ext_resource type="Texture2D" uid="uid://cacog7vsx7x6o" path="res://animation/player/crouched-walking/east/frame_001.png" id="34_fkf2u"]
+[ext_resource type="Texture2D" uid="uid://6ymnlwy0k1yc" path="res://animation/player/crouched-walking/east/frame_002.png" id="35_s7jk6"]
+[ext_resource type="Texture2D" uid="uid://c3vqq3ua63461" path="res://animation/player/crouched-walking/east/frame_003.png" id="36_feeoa"]
+[ext_resource type="Texture2D" uid="uid://h7s0kpuy2bcf" path="res://animation/player/crouched-walking/east/frame_004.png" id="37_m6nxt"]
+[ext_resource type="Texture2D" uid="uid://caogk7x550fmh" path="res://animation/player/crouched-walking/east/frame_005.png" id="38_ym00c"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_ee2o4"]
+radius = 9.159848
+height = 66.32728
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_vie4p"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_pgbbb")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_331ug")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_ny14h")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_ibah8")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_3iwfv")
+}],
+"loop": true,
+"name": &"crouch",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("7_qwsg1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_1xqrm")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_bfour")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_8gr2b")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("11_vl8ci")
+}, {
+"duration": 1.0,
+"texture": ExtResource("12_ieltc")
+}, {
+"duration": 1.0,
+"texture": ExtResource("13_fddr8")
+}, {
+"duration": 1.0,
+"texture": ExtResource("14_oybyf")
+}, {
+"duration": 1.0,
+"texture": ExtResource("15_ajfva")
+}, {
+"duration": 1.0,
+"texture": ExtResource("16_5ef02")
+}, {
+"duration": 1.0,
+"texture": ExtResource("17_pfmca")
+}, {
+"duration": 1.0,
+"texture": ExtResource("18_76oay")
+}],
+"loop": true,
+"name": &"idle_battle",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("19_b4uyv")
+}, {
+"duration": 1.0,
+"texture": ExtResource("20_tw8ou")
+}, {
+"duration": 1.0,
+"texture": ExtResource("21_ygbnx")
+}, {
+"duration": 1.0,
+"texture": ExtResource("22_v2t6f")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_l3lcn")
+}, {
+"duration": 1.0,
+"texture": ExtResource("24_xry5e")
+}, {
+"duration": 1.0,
+"texture": ExtResource("25_h6w8y")
+}, {
+"duration": 1.0,
+"texture": ExtResource("26_yem3p")
+}],
+"loop": true,
+"name": &"jump",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("27_86rna")
+}, {
+"duration": 1.0,
+"texture": ExtResource("28_xg1a7")
+}, {
+"duration": 1.0,
+"texture": ExtResource("29_ob4mi")
+}, {
+"duration": 1.0,
+"texture": ExtResource("30_ax26h")
+}, {
+"duration": 1.0,
+"texture": ExtResource("31_kh4g0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("32_mgmjd")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("33_va2xi")
+}, {
+"duration": 1.0,
+"texture": ExtResource("34_fkf2u")
+}, {
+"duration": 1.0,
+"texture": ExtResource("35_s7jk6")
+}, {
+"duration": 1.0,
+"texture": ExtResource("36_feeoa")
+}, {
+"duration": 1.0,
+"texture": ExtResource("37_m6nxt")
+}, {
+"duration": 1.0,
+"texture": ExtResource("38_ym00c")
+}],
+"loop": true,
+"name": &"walk_crouch",
+"speed": 5.0
+}]
+
+[node name="Player" type="Area2D"]
+position = Vector2(91, 109)
+scale = Vector2(3.4220161, 2.5451353)
+script = ExtResource("1_b88wv")
+metadata/_edit_group_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 6)
+rotation = 3.1415927
+scale = Vector2(0.87337685, -0.96491224)
+shape = SubResource("CapsuleShape2D_ee2o4")
+
+[node name="player_sprite" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, 1)
+scale = Vector2(1, 1.245)
+sprite_frames = SubResource("SpriteFrames_vie4p")
+animation = &"idle"
+frame_progress = 0.68933296
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]

@@ -1,0 +1,15 @@
+[remap]
+
+importer="import_gif_to_sprite_frames"
+type="SpriteFrames"
+uid="uid://dd1dggiiyo7fp"
+path="res://.godot/imported/General_Appearance_Silhouette_Tall_imposing_slight_breathing-idle_west.gif-384d1328c295fbe877ccd12b7d66e789.tres"
+
+[deps]
+
+source_file="res://muzika/General_Appearance_Silhouette_Tall_imposing_slight_breathing-idle_west.gif"
+dest_files=["res://.godot/imported/General_Appearance_Silhouette_Tall_imposing_slight_breathing-idle_west.gif-384d1328c295fbe877ccd12b7d66e789.tres"]
+
+[params]
+
+frames_per_second=30

@@ -1,0 +1,88 @@
+[gd_scene load_steps=7 format=3 uid="uid://cf4r67vdq3x8a"]
+
+[ext_resource type="Texture2D" uid="uid://bqatxv02nljtj" path="res://images/main_menu_bg.png" id="1_06t4h"]
+[ext_resource type="Script" uid="uid://dda8u5tus5pyn" path="res://scripts/main_menu.gd" id="1_fu7sn"]
+[ext_resource type="Script" uid="uid://b63guxi6bijba" path="res://scripts/quit.gd" id="2_7vrkn"]
+[ext_resource type="AudioStream" uid="uid://cc31pm6f52nkw" path="res://muzika/Pitaju me u mom kraju(1).mp3" id="4_jix8l"]
+
+[sub_resource type="Theme" id="Theme_06t4h"]
+
+[sub_resource type="Theme" id="Theme_7vrkn"]
+
+[node name="MainMenu" type="Node2D"]
+scale = Vector2(2, 2)
+script = ExtResource("1_fu7sn")
+
+[node name="Background" type="TextureRect" parent="."]
+clip_contents = true
+anchors_preset = 13
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -0.5
+offset_top = -2.5
+offset_right = 2550.001
+offset_bottom = 1693.324
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.37541646, 0.3178396)
+size_flags_horizontal = 3
+size_flags_vertical = 3
+texture = ExtResource("1_06t4h")
+
+[node name="Label" type="Label" parent="."]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 554.5
+offset_top = 159.50002
+offset_right = 1198.5
+offset_bottom = 247.50002
+grow_vertical = 0
+scale = Vector2(0.42184755, 0.5079747)
+theme = SubResource("Theme_06t4h")
+theme_type_variation = &"TooltipLabel"
+theme_override_font_sizes/font_size = 64
+text = "Fear not, Sinner"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_trim_flags = 0
+justification_flags = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+offset_left = 625.0
+offset_top = 236.5
+offset_right = 755.0
+offset_bottom = 460.5
+scale = Vector2(0.8719281, 0.78376216)
+
+[node name="Start" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+theme = SubResource("Theme_7vrkn")
+theme_override_font_sizes/font_size = 32
+text = "Start"
+
+[node name="Load" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+theme = SubResource("Theme_7vrkn")
+theme_override_font_sizes/font_size = 32
+text = "Load"
+
+[node name="Options" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+theme = SubResource("Theme_7vrkn")
+theme_override_font_sizes/font_size = 32
+text = "Options"
+
+[node name="Quit" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+theme = SubResource("Theme_7vrkn")
+theme_override_font_sizes/font_size = 32
+text = "Quit"
+script = ExtResource("2_7vrkn")
+
+[node name="Music" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("4_jix8l")
+autoplay = true
+
+[connection signal="pressed" from="VBoxContainer/Start" to="." method="_on_start_pressed"]
