@@ -3,12 +3,10 @@ const states := preload("res://scripts/movement/movement_states.gd")
 @onready var sprite := $player_sprite
 
 @export var speed := 100.0
-@export_range(0.0, 1.0, 0.001, "Interpolation factor for player movement") var speedupDelta := 0.5
 
-
-
-
-var movement_fsm := MovementFSM.new()
+@export var movement_fsm: MovementFSM
+@export var movement_updater: MovementUpdate
+var movement_states := states.new()
 
 var screen_size
 var animation_lock := false
@@ -17,32 +15,43 @@ var previous_move_state: states.MoveState = states.MoveState.IDLE
 var direction := states.Direction.RIGHT
 var walking = false
 
-
 func _ready():
 	screen_size = get_viewport_rect().size
 	movement_fsm.current = states.MoveState.IDLE
 
 func _process(_delta: float) -> void:
-	_update_location()
-	_update_animation_state()
+	_update_movement_state()
 	_update_animation()
 	_play_sfx()
-
-func _update_location() -> void:
-	match move_state:
-		states.MoveState.WALK:
-			pass
-		states.MoveState.WALK_CROUCH:
-			pass
+	
+func _physics_process(delta: float) -> void:
+	_update_location(delta)
+	
+func _update_location(delta: float) -> void:
+	movement_updater.move(self, move_state, movement_fsm, speed)
+	var newSpeed = movement_fsm.update(delta)
+	if newSpeed >= 0:
+		speed = newSpeed
+	
+	match direction:
+		states.Direction.RIGHT:
+			position.x += speed
+		states.Direction.LEFT:
+			position.x -= speed
+	
+	position = position.clamp(Vector2.ZERO, screen_size)
+	sprite.play()
 		
 
-func _update_animation_state() -> void:
+func _update_movement_state() -> void:
 	if Input.is_action_pressed("move_right"):
 		walking = true
 		direction = states.Direction.RIGHT
 	elif Input.is_action_pressed("move_left"):
 		walking = true
 		direction = states.Direction.LEFT
+	else:
+		walking = false
 
 	if animation_lock:
 		return

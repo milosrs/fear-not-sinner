@@ -7,7 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://bbxcwaus5ej7o" path="res://animation/player/crouching/east/frame_001.png" id="3_331ug"]
 [ext_resource type="Curve2D" uid="uid://byino5louth1n" path="res://scripts/movement/curves/roll.tres" id="3_ieltc"]
 [ext_resource type="Texture2D" uid="uid://cu8rapph2ylbk" path="res://animation/player/crouching/east/frame_002.png" id="4_ny14h"]
-[ext_resource type="Curve2D" uid="uid://7qraa2iscmv7" path="res://scripts/movement/curves/sprint_start.tres" id="5_fddr8"]
+[ext_resource type="Curve2D" path="res://scripts/movement/curves/sprint_start.tres" id="5_fddr8"]
 [ext_resource type="Texture2D" uid="uid://dhvdaridy4s1l" path="res://animation/player/crouching/east/frame_003.png" id="5_ibah8"]
 [ext_resource type="Texture2D" uid="uid://cvhm0f3bwyrke" path="res://animation/player/crouching/east/frame_004.png" id="6_3iwfv"]
 [ext_resource type="Curve2D" path="res://scripts/movement/curves/sprint_stop.tres" id="6_oybyf"]
@@ -61,13 +61,13 @@ sprintCurve = ExtResource("5_fddr8")
 sprintStopCurve = ExtResource("6_oybyf")
 walkToSprintCurve = ExtResource("9_pfmca")
 rollCurve = ExtResource("3_ieltc")
-walkDuration = 3.0
-walkStopDuration = 1.0
-sprintDuration = 4.0
-sprintStopDuration = 2.0
-walkToSprintDuration = 2.0
-sprintToWalkDuration = 1.6
-rollDuration = 1.0
+walkDuration = 0.5
+walkStopDuration = 0.4
+sprintDuration = 0.8
+sprintStopDuration = 0.6
+walkToSprintDuration = 0.3
+sprintToWalkDuration = 0.4
+rollDuration = 0.1
 metadata/_custom_type_script = "uid://b1xnu2hhpdat4"
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_ee2o4"]
