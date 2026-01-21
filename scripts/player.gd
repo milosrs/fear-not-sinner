@@ -29,7 +29,7 @@ func _physics_process(delta: float) -> void:
 func _update_location(delta: float) -> void:
 	movement_updater.move(self, move_state, movement_fsm, speed)
 	var new_speed = movement_fsm.update(delta)
-	if new_speed >= 0:
+	if new_speed != speed:
 		speed = new_speed
 	
 	match direction:
