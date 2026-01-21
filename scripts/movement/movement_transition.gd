@@ -1,9 +1,9 @@
 class_name MovementTransition
 
-const states = preload("res://scripts/movement/movement_states.gd")
+const States = preload("res://scripts/movement/movement_states.gd")
 
-var from: states.MoveState
-var to: states.MoveState
+var from: States.MoveState
+var to: States.MoveState
 var duration: float
 var curve: Curve2D
 

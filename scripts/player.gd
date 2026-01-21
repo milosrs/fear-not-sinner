@@ -1,23 +1,22 @@
 extends Area2D
-const states := preload("res://scripts/movement/movement_states.gd")
+const States := preload("res://scripts/movement/movement_states.gd")
 @onready var sprite := $player_sprite
 
 @export var speed := 100.0
-
 @export var movement_fsm: MovementFSM
 @export var movement_updater: MovementUpdate
-var movement_states := states.new()
+var movement_states := States.new()
 
 var screen_size
 var animation_lock := false
-var move_state: states.MoveState = states.MoveState.IDLE
-var previous_move_state: states.MoveState = states.MoveState.IDLE
-var direction := states.Direction.RIGHT
+var move_state: States.MoveState = States.MoveState.IDLE
+var previous_move_state: States.MoveState = States.MoveState.IDLE
+var direction := States.Direction.RIGHT
 var walking = false
 
 func _ready():
 	screen_size = get_viewport_rect().size
-	movement_fsm.current = states.MoveState.IDLE
+	movement_fsm.current = States.MoveState.IDLE
 
 func _process(_delta: float) -> void:
 	_update_movement_state()
@@ -29,14 +28,14 @@ func _physics_process(delta: float) -> void:
 	
 func _update_location(delta: float) -> void:
 	movement_updater.move(self, move_state, movement_fsm, speed)
-	var newSpeed = movement_fsm.update(delta)
-	if newSpeed >= 0:
-		speed = newSpeed
+	var new_speed = movement_fsm.update(delta)
+	if new_speed >= 0:
+		speed = new_speed
 	
 	match direction:
-		states.Direction.RIGHT:
+		States.Direction.RIGHT:
 			position.x += speed
-		states.Direction.LEFT:
+		States.Direction.LEFT:
 			position.x -= speed
 	
 	position = position.clamp(Vector2.ZERO, screen_size)
@@ -46,10 +45,10 @@ func _update_location(delta: float) -> void:
 func _update_movement_state() -> void:
 	if Input.is_action_pressed("move_right"):
 		walking = true
-		direction = states.Direction.RIGHT
+		direction = States.Direction.RIGHT
 	elif Input.is_action_pressed("move_left"):
 		walking = true
-		direction = states.Direction.LEFT
+		direction = States.Direction.LEFT
 	else:
 		walking = false
 
@@ -61,41 +60,41 @@ func _update_movement_state() -> void:
 	var jumping := Input.is_action_just_pressed("jump")
 
 	if jumping:
-		move_state = states.MoveState.JUMP
+		move_state = States.MoveState.JUMP
 		animation_lock = true
 	elif walking and crouching:
-		move_state = states.MoveState.WALK_CROUCH
+		move_state = States.MoveState.WALK_CROUCH
 	elif walking:
-		move_state = states.MoveState.WALK
+		move_state = States.MoveState.WALK
 	elif crouching:
-		move_state = states.MoveState.CROUCH
+		move_state = States.MoveState.CROUCH
 	elif standingup:
-		move_state = states.MoveState.STAND_UP
+		move_state = States.MoveState.STAND_UP
 		animation_lock = true
 	else:
-		move_state = states.MoveState.IDLE
+		move_state = States.MoveState.IDLE
 
 func _update_animation() -> void:
-	sprite.flip_h = direction == states.Direction.LEFT
+	sprite.flip_h = direction == States.Direction.LEFT
 		
 	var target_anim := _state_to_animation(move_state)
 	
 	if sprite.animation != target_anim:
 		sprite.play(target_anim)
 
-func _state_to_animation(state: states.MoveState) -> String:
+func _state_to_animation(state: States.MoveState) -> String:
 	match state:
-		states.MoveState.IDLE:
+		States.MoveState.IDLE:
 			return "idle"
-		states.MoveState.WALK:
+		States.MoveState.WALK:
 			return "walk"
-		states.MoveState.CROUCH:
+		States.MoveState.CROUCH:
 			return "crouch"
-		states.MoveState.WALK_CROUCH:
+		States.MoveState.WALK_CROUCH:
 			return "walk_crouch"
-		states.MoveState.JUMP:
+		States.MoveState.JUMP:
 			return "jump"
-		states.MoveState.STAND_UP:
+		States.MoveState.STAND_UP:
 			return "stand_up"
 		_:
 			return "idle"
@@ -103,20 +102,20 @@ func _state_to_animation(state: states.MoveState) -> String:
 
 
 func _on_player_sprite_animation_finished() -> void:
-	if move_state == states.MoveState.STAND_UP || move_state == states.MoveState.JUMP:
-		move_state = states.MoveState.IDLE
+	if move_state == States.MoveState.STAND_UP || move_state == States.MoveState.JUMP:
+		move_state = States.MoveState.IDLE
 		animation_lock = false
 
 func _play_sfx() -> void:
 	match move_state:
-		states.MoveState.JUMP:
+		States.MoveState.JUMP:
 			$walk.stop()
 			_play_sound($jump, 1)
-		states.MoveState.WALK:
+		States.MoveState.WALK:
 			$jump.stop()
 			$walk.pitch_scale = 1
 			_play_sound($walk, 1)
-		states.MoveState.WALK_CROUCH:
+		States.MoveState.WALK_CROUCH:
 			$jump.stop()
 			$walk.pitch_scale = 0.8
 			_play_sound($walk, 0.8)
@@ -129,8 +128,9 @@ func _play_sound(audio: AudioStreamPlayer2D, expected_pitch: float) -> void:
 	
 	if audio.playing && pitch_equal:
 		return
-	elif audio.playing && !pitch_equal:
+	if audio.playing && !pitch_equal:
 		audio.stop()
+		return
 	
 	audio.play()
 	

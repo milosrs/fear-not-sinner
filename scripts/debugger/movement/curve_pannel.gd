@@ -119,7 +119,15 @@ func _draw_curve_cell(curve: Curve2D, title: String, origin: Vector2, active_rec
 	draw_rect(rect, border_color, false, border_width)
 
 	# Title
-	draw_string(get_theme_default_font(), origin + Vector2(8, 18), title, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color.WHITE)
+	draw_string(
+		get_theme_default_font(), 
+		origin + Vector2(8, 18), 
+		title, 
+		HORIZONTAL_ALIGNMENT_LEFT, 
+		-1, 
+		14, 
+		Color.WHITE,
+	)
 
 	var plot_origin := origin + Vector2(10, 30)
 	var plot_size := cell_size - Vector2(20, 40)
@@ -214,14 +222,16 @@ func _select_point_or_handle(mouse_pos: Vector2):
 	for i in range(curves.size()):
 		var col := i % cols
 		var row := i / cols
-		var origin := Vector2(padding + col * (cell_size.x + padding), padding + row * (cell_size.y + padding))
+		var origin := Vector2(
+			padding + col * (cell_size.x + padding), 
+			padding + row * (cell_size.y + padding),
+		)
 		var rect := Rect2(origin, cell_size)
 	
 		
 		if rect.has_point(mouse_pos):
 			active_rect_index = i
 			selected_curve_index = i
-			rect
 
 		var plot_origin := origin + Vector2(10, 30)
 		var plot_size := cell_size - Vector2(20, 40)
@@ -257,7 +267,7 @@ func _select_point_or_handle(mouse_pos: Vector2):
 				drag_offset = in_pos - mouse_pos
 				queue_redraw()
 				return
-			elif mouse_pos.distance_to(out_pos) <= 5:
+			if mouse_pos.distance_to(out_pos) <= 5:
 				selected_curve_index = i
 				selected_point_index = j
 				selected_handle = "out"
@@ -265,7 +275,7 @@ func _select_point_or_handle(mouse_pos: Vector2):
 				queue_redraw()
 				return
 			# Then check main point
-			elif mouse_pos.distance_to(pos) <= 8:
+			if mouse_pos.distance_to(pos) <= 8:
 				selected_curve_index = i
 				selected_point_index = j
 				selected_handle = ""
@@ -278,7 +288,7 @@ func _select_point_or_handle(mouse_pos: Vector2):
 # -------------------------
 # Drag a selected point or handle
 # -------------------------
-func _drag_selected(relative: Vector2):
+func _drag_selected(_relative: Vector2):
 	if selected_curve_index == -1 or selected_point_index == -1:
 		return
 
@@ -321,7 +331,7 @@ func _get_curve_origin(index: int) -> Vector2:
 	var row := index / cols
 	return Vector2(padding + col * (cell_size.x + padding), padding + row * (cell_size.y + padding))
 
-func _emit_curve_changed(curve: Curve2D):
+func _emit_curve_changed(_curve: Curve2D):
 	# Example: notify your character controller that this curve changed
 	# emit_signal("curve_updated", curve)
 	pass

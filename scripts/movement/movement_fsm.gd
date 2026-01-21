@@ -1,19 +1,26 @@
 extends Resource
 class_name MovementFSM
 
+const States = preload("res://scripts/movement/movement_states.gd")
+
 var sprite:Node
-var current: MovementTransition.states.MoveState
-var target: MovementTransition.states.MoveState
+var current: States.MoveState
+var target: States.MoveState
 var transition: MovementTransition
-var transitionTime: float
+var transition_time: float
 var from: float
 var to: float
 
-func start_transition(_sprite: Node, _transition: MovementTransition, currentSpeed: float, targetSpeed: float):
+func start_transition(
+	_sprite: Node, 
+	_transition: MovementTransition,
+	current_speed: float,
+	target_speed: float,
+) -> void:
 	sprite = _sprite
-	transitionTime = 0
-	from = currentSpeed
-	to = targetSpeed
+	transition_time = 0
+	from = current_speed
+	to = target_speed
 	transition = _transition
 	
 	if transition != null:
@@ -24,9 +31,9 @@ func update(delta: float) -> float:
 	if transition == null:
 		return to
 	
-	transitionTime += delta
+	transition_time += delta
 	
-	var t = clamp(transitionTime/transition.duration, 0.0, 1.0)
+	var t = clamp(transition_time/transition.duration, 0.0, 1.0)
 	if t >= 1.0:
 		current = target
 		transition = null
