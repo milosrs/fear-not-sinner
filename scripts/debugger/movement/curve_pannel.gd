@@ -15,8 +15,13 @@ var selected_point_index: int = -1
 var selected_handle: String = "" # "in", "out", or ""
 var drag_offset: Vector2 = Vector2.ZERO
 
+# Zoom state
+var zoomed_curve_index: int = -1
+var show_tangents: bool = true
+
 func _ready() -> void:
 	_load_curves()
+	_reset_out_of_range_points()
 	queue_redraw()
 	focus_mode = Control.FOCUS_ALL
 	grab_focus()
@@ -48,6 +53,54 @@ func _load_curves():
 	print("Loaded curves: ", curves.size())
 
 # -------------------------
+# Reset out-of-range points
+# -------------------------
+func _reset_out_of_range_points():
+	for curve in curves:
+		for i in range(curve.get_point_count()):
+			var point = curve.get_point_position(i)
+			var new_point = point
+			var changed = false
+			
+			# Clamp X between 0 and 10
+			if point.x < 0 or point.x > 10:
+				new_point.x = clamp(point.x, 0.0, 10.0)
+				changed = true
+			
+			# Clamp Y between 0 and 20
+			if point.y < 0 or point.y > 20:
+				new_point.y = clamp(point.y, 0.0, 20.0)
+				changed = true
+			
+			if changed:
+				curve.set_point_position(i, new_point)
+				print("Reset point ", i, " from ", point, " to ", new_point)
+			
+			# Reset tangent handles to keep them in bounds
+			var in_offset = curve.get_point_in(i)
+			var out_offset = curve.get_point_out(i)
+			
+			# Calculate absolute positions of handles
+			var in_abs = new_point + in_offset
+			var out_abs = new_point + out_offset
+			
+			# Clamp handle absolute positions
+			var new_in_abs = Vector2(clamp(in_abs.x, 0.0, 10.0), clamp(in_abs.y, 0.0, 20.0))
+			var new_out_abs = Vector2(clamp(out_abs.x, 0.0, 10.0), clamp(out_abs.y, 0.0, 20.0))
+			
+			# Convert back to relative offsets
+			var new_in_offset = new_in_abs - new_point
+			var new_out_offset = new_out_abs - new_point
+			
+			if in_offset != new_in_offset:
+				curve.set_point_in(i, new_in_offset)
+				print("Reset in handle ", i, " from ", in_offset, " to ", new_in_offset)
+			
+			if out_offset != new_out_offset:
+				curve.set_point_out(i, new_out_offset)
+				print("Reset out handle ", i, " from ", out_offset, " to ", new_out_offset)
+
+# -------------------------
 # Drawing
 # -------------------------
 func _calc_cols() -> int:
@@ -57,53 +110,131 @@ func _calc_cols() -> int:
 	return max(1, size_calc)
 
 func _draw():
-	var cols := _calc_cols()
+	if zoomed_curve_index != -1:
+		# Draw zoomed view
+		_draw_zoomed_curve()
+	else:
+		# Draw grid view
+		var cols := _calc_cols()
+		for i in range(curves.size()):
+			var col := i % cols
+			var row := i / cols
+			var origin := Vector2(
+				padding + col * (cell_size.x + padding),
+				padding + row * (cell_size.y + padding)
+			)
 
-	for i in range(curves.size()):
-		var col := i % cols
-		var row := i / cols
-		var origin := Vector2(
-			padding + col * (cell_size.x + padding),
-			padding + row * (cell_size.y + padding)
-		)
+			_draw_curve_cell(curves[i], curve_names[i], origin, i == active_rect_index)
 
-		_draw_curve_cell(curves[i], curve_names[i], origin, i == active_rect_index)
-
-		if i == selected_curve_index:
-			_draw_curve_points(curves[i], origin)
-
-# Map curve points and handles into its rectangle
 # -------------------------
-# Calculate bounds including handles
+# Calculate bounds
 # -------------------------
 func _get_curve_bounds(curve: Curve2D) -> Rect2:
-	if curve.get_point_count() == 0:
-		return Rect2(Vector2.ZERO, Vector2.ONE)
+	# Fixed bounds: X from 0 to 10, Y from 0 to 20
+	return Rect2(Vector2(0, 0), Vector2(10, 20))
+
+# -------------------------
+# Draw zoomed curve (full screen)
+# -------------------------
+func _draw_zoomed_curve():
+	var curve = curves[zoomed_curve_index]
+	var title = curve_names[zoomed_curve_index]
 	
-	var first = curve.get_point_position(0)
-	var minv = first
-	var maxv = first
+	# Semi-transparent background
+	draw_rect(Rect2(Vector2.ZERO, size), Color(0.05, 0.05, 0.05, 0.95), true)
+	
+	# Title
+	draw_string(
+		get_theme_default_font(),
+		Vector2(20, 30),
+		title + " (Press ESC to exit)",
+		HORIZONTAL_ALIGNMENT_LEFT,
+		-1,
+		16,
+		Color.WHITE
+	)
+	
+	# Draw X button in top right
+	var button_size = 40.0
+	var button_pos = Vector2(size.x - button_size - 20, 20)
+	var button_rect = Rect2(button_pos, Vector2(button_size, button_size))
+	
+	# Button background
+	draw_rect(button_rect, Color(0.8, 0.2, 0.2, 0.8), true)
+	draw_rect(button_rect, Color(1, 1, 1), false, 2)
+	
+	# Draw X
+	var center = button_pos + Vector2(button_size / 2, button_size / 2)
+	var x_size = 12.0
+	draw_line(center + Vector2(-x_size, -x_size), center + Vector2(x_size, x_size), Color.WHITE, 3)
+	draw_line(center + Vector2(-x_size, x_size), center + Vector2(x_size, -x_size), Color.WHITE, 3)
+	
+	# Draw toggle tangents button
+	var toggle_button_pos = Vector2(size.x - button_size - 20, 70)
+	var toggle_button_rect = Rect2(toggle_button_pos, Vector2(button_size, button_size))
+	
+	# Button background - different color based on state
+	var toggle_color = Color(0.2, 0.8, 0.2, 0.8) if show_tangents else Color(0.5, 0.5, 0.5, 0.8)
+	draw_rect(toggle_button_rect, toggle_color, true)
+	draw_rect(toggle_button_rect, Color(1, 1, 1), false, 2)
+	
+	# Draw T for Tangents
+	draw_string(
+		get_theme_default_font(),
+		toggle_button_pos + Vector2(12, 28),
+		"T",
+		HORIZONTAL_ALIGNMENT_LEFT,
+		-1,
+		20,
+		Color.WHITE
+	)
+	
+	# Draw save button
+	var save_button_pos = Vector2(size.x - button_size - 20, 120)
+	var save_button_rect = Rect2(save_button_pos, Vector2(button_size, button_size))
+	
+	# Button background
+	draw_rect(save_button_rect, Color(0.2, 0.6, 0.8, 0.8), true)
+	draw_rect(save_button_rect, Color(1, 1, 1), false, 2)
+	
+	# Draw S for Save
+	draw_string(
+		get_theme_default_font(),
+		save_button_pos + Vector2(12, 28),
+		"S",
+		HORIZONTAL_ALIGNMENT_LEFT,
+		-1,
+		20,
+		Color.WHITE
+	)
+	
+	var plot_margin = 60.0
+	var plot_origin := Vector2(plot_margin, plot_margin + 20)
+	var plot_size := size - Vector2(plot_margin * 2, plot_margin * 2 + 20)
+	var bounds = _get_curve_bounds(curve)
+	
+	# Draw coordinate grid
+	_draw_coordinate_grid(plot_origin, plot_size)
+	
+	# Draw the curve line
+	var prev: Variant = null
+	for i in range(samples + 1):
+		var t = i / samples
+		var sample = curve.sample(0, t)
+		var x = (sample.x - bounds.position.x) / bounds.size.x
+		var y = (sample.y - bounds.position.y) / bounds.size.y
+		var p = plot_origin + Vector2(x * plot_size.x, (1 - y) * plot_size.y)
 
-	for i in range(curve.get_point_count()):
-		var p = curve.get_point_position(i)
-		var in_p = p + curve.get_point_in(i)
-		var out_p = p + curve.get_point_out(i)
+		if prev != null:
+			draw_line(prev, p, Color.RED, 3)
+		prev = p
+	
+	# Draw points and handles with values
+	_draw_curve_points_with_values(curve, plot_origin, plot_size)
 
-		# Update min/max including point and handles
-		minv.x = min(minv.x, p.x, in_p.x, out_p.x)
-		minv.y = min(minv.y, p.y, in_p.y, out_p.y)
-		maxv.x = max(maxv.x, p.x, in_p.x, out_p.x)
-		maxv.y = max(maxv.y, p.y, in_p.y, out_p.y)
-
-	# Avoid zero-size
-	if minv.x == maxv.x:
-		maxv.x += 1
-	if minv.y == maxv.y:
-		maxv.y += 1
-
-	return Rect2(minv, maxv - minv)
-
-# Draw a curve in its rectangle
+# -------------------------
+# Draw curve cell (grid view)
+# -------------------------
 func _draw_curve_cell(curve: Curve2D, title: String, origin: Vector2, active_rect: bool = false):
 	var rect := Rect2(origin, cell_size)
 
@@ -132,6 +263,9 @@ func _draw_curve_cell(curve: Curve2D, title: String, origin: Vector2, active_rec
 	var plot_origin := origin + Vector2(10, 30)
 	var plot_size := cell_size - Vector2(20, 40)
 	var bounds = _get_curve_bounds(curve)
+	
+	# Draw coordinate grid
+	_draw_coordinate_grid(plot_origin, plot_size)
 
 	var prev: Variant = null
 	for i in range(samples + 1):
@@ -146,11 +280,75 @@ func _draw_curve_cell(curve: Curve2D, title: String, origin: Vector2, active_rec
 		prev = p
 
 # -------------------------
-# Draw points and tangent handles
+# Draw coordinate grid
 # -------------------------
-func _draw_curve_points(curve: Curve2D, origin: Vector2):
-	var plot_origin := origin + Vector2(10, 30)
-	var plot_size := cell_size - Vector2(20, 40)
+func _draw_coordinate_grid(plot_origin: Vector2, plot_size: Vector2):
+	var grid_color = Color(0.3, 0.3, 0.3, 0.5)
+	var axis_color = Color(0.5, 0.5, 0.5, 0.8)
+	
+	# Draw vertical grid lines (X axis)
+	for i in range(11):  # 0 to 10
+		var x = plot_origin.x + (i / 10.0) * plot_size.x
+		var color = axis_color if i == 0 else grid_color
+		draw_line(Vector2(x, plot_origin.y), Vector2(x, plot_origin.y + plot_size.y), color, 1)
+		
+		# Draw X labels
+		if i % 2 == 0:  # Label every 2 units
+			draw_string(
+				get_theme_default_font(),
+				Vector2(x - 5, plot_origin.y + plot_size.y + 15),
+				str(i),
+				HORIZONTAL_ALIGNMENT_LEFT,
+				-1,
+				10,
+				Color(0.6, 0.6, 0.6)
+			)
+	
+	# Draw horizontal grid lines (Y axis)
+	for i in range(21):  # 0 to 20
+		var y = plot_origin.y + plot_size.y - (i / 20.0) * plot_size.y
+		var color = axis_color if i == 0 else grid_color
+		draw_line(Vector2(plot_origin.x, y), Vector2(plot_origin.x + plot_size.x, y), color, 1)
+		
+		# Draw Y labels
+		if i % 4 == 0:  # Label every 4 units
+			draw_string(
+				get_theme_default_font(),
+				Vector2(plot_origin.x - 20, y + 4),
+				str(i),
+				HORIZONTAL_ALIGNMENT_LEFT,
+				-1,
+				10,
+				Color(0.6, 0.6, 0.6)
+			)
+	
+	# Draw axis labels
+	# X axis label (Time)
+	draw_string(
+		get_theme_default_font(),
+		Vector2(plot_origin.x + plot_size.x / 2 - 20, plot_origin.y + plot_size.y + 35),
+		"X: Time",
+		HORIZONTAL_ALIGNMENT_LEFT,
+		-1,
+		14,
+		Color(0.8, 0.8, 0.8)
+	)
+	
+	# Y axis label (Speed)
+	draw_string(
+		get_theme_default_font(),
+		Vector2(plot_origin.x - 50, plot_origin.y - 10),
+		"Y: Speed",
+		HORIZONTAL_ALIGNMENT_LEFT,
+		-1,
+		14,
+		Color(0.8, 0.8, 0.8)
+	)
+
+# -------------------------
+# Draw points and tangent handles with values
+# -------------------------
+func _draw_curve_points_with_values(curve: Curve2D, plot_origin: Vector2, plot_size: Vector2):
 	var bounds = _get_curve_bounds(curve)
 
 	for i in range(curve.get_point_count()):
@@ -160,65 +358,120 @@ func _draw_curve_points(curve: Curve2D, origin: Vector2):
 		var pos = plot_origin + Vector2(x * plot_size.x, (1 - y) * plot_size.y)
 
 		# Draw main point
-		draw_circle(pos, 5, Color.YELLOW)
+		draw_circle(pos, 6, Color.YELLOW)
+		
+		# Draw point value label
+		var point_label = "X: %.2f, Y: %.2f" % [point.x, point.y]
+		draw_string(
+			get_theme_default_font(),
+			pos + Vector2(-35, 20),
+			point_label,
+			HORIZONTAL_ALIGNMENT_LEFT,
+			-1,
+			12,
+			Color(1, 1, 0.5)
+		)
 
 		# Tangent handles
 		var in_offset = curve.get_point_in(i)
 		var out_offset = curve.get_point_out(i)
 
-		# Map handle positions relative to bounds
-		var in_pos = Vector2(
-			(point.x + in_offset.x - bounds.position.x) / bounds.size.x * plot_size.x,
-			(1 - (point.y + in_offset.y - bounds.position.y) / bounds.size.y) * plot_size.y
-		) + plot_origin
+		if show_tangents:
+			# Map handle positions relative to bounds
+			var in_pos = Vector2(
+				(point.x + in_offset.x - bounds.position.x) / bounds.size.x * plot_size.x,
+				(1 - (point.y + in_offset.y - bounds.position.y) / bounds.size.y) * plot_size.y
+			) + plot_origin
 
-		var out_pos = Vector2(
-			(point.x + out_offset.x - bounds.position.x) / bounds.size.x * plot_size.x,
-			(1 - (point.y + out_offset.y - bounds.position.y) / bounds.size.y) * plot_size.y
-		) + plot_origin
+			var out_pos = Vector2(
+				(point.x + out_offset.x - bounds.position.x) / bounds.size.x * plot_size.x,
+				(1 - (point.y + out_offset.y - bounds.position.y) / bounds.size.y) * plot_size.y
+			) + plot_origin
 
-		# Draw handle lines
-		draw_line(pos, in_pos, Color.CYAN, 1)
-		draw_line(pos, out_pos, Color.MAGENTA, 1)
+			# Draw handle lines
+			draw_line(pos, in_pos, Color.CYAN, 2)
+			draw_line(pos, out_pos, Color.MAGENTA, 2)
 
-		# Draw handle points
-		draw_circle(in_pos, 3, Color.CYAN)
-		draw_circle(out_pos, 3, Color.MAGENTA)
+			# Draw handle points
+			draw_circle(in_pos, 4, Color.CYAN)
+			draw_circle(out_pos, 4, Color.MAGENTA)
+			
+			# Draw handle value labels (relative to point)
+			var in_label = "X: %.2f, Y: %.2f" % [in_offset.x, in_offset.y]
+			draw_string(
+				get_theme_default_font(),
+				in_pos + Vector2(-35, 20),
+				in_label,
+				HORIZONTAL_ALIGNMENT_LEFT,
+				-1,
+				11,
+				Color(0.5, 1, 1)
+			)
+			
+			var out_label = "X: %.2f, Y: %.2f" % [out_offset.x, out_offset.y]
+			draw_string(
+				get_theme_default_font(),
+				out_pos + Vector2(-35, 20),
+				out_label,
+				HORIZONTAL_ALIGNMENT_LEFT,
+				-1,
+				11,
+				Color(1, 0.5, 1)
+			)
 
 # -------------------------
-# Input Handling - FIXED
+# Input Handling
 # -------------------------
 func _gui_input(event):
 	if event is InputEventKey and event.pressed:
-		if event.keycode == KEY_S and event.ctrl_pressed:
+		if event.keycode == KEY_ESCAPE and zoomed_curve_index != -1:
+			# Exit zoom mode
+			_exit_zoom_mode()
+			get_viewport().set_input_as_handled()
+		elif event.keycode == KEY_S and event.ctrl_pressed:
 			_save_all_curves()
 			get_viewport().set_input_as_handled()
 
 	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
-			_select_point_or_handle(event.position)
+			if zoomed_curve_index != -1:
+				# Check if clicking X button first
+				if _is_clicking_exit_button(event.position):
+					_exit_zoom_mode()
+					get_viewport().set_input_as_handled()
+					return
+				# Check if clicking toggle tangents button
+				if _is_clicking_toggle_button(event.position):
+					show_tangents = !show_tangents
+					queue_redraw()
+					get_viewport().set_input_as_handled()
+					return
+				# Check if clicking save button
+				if _is_clicking_save_button(event.position):
+					_save_current_curve()
+					get_viewport().set_input_as_handled()
+					return
+				# In zoom mode - select point or handle
+				_select_point_or_handle_zoomed(event.position)
+			else:
+				# In grid mode - check if clicking on a cell to zoom
+				_handle_grid_click(event.position)
 		else:
 			selected_point_index = -1
 			selected_handle = ""
 		get_viewport().set_input_as_handled()
 		
 	elif event is InputEventMouseMotion:
-		if selected_curve_index != -1 and selected_point_index != -1:
-			_drag_selected(event.relative)
+		if zoomed_curve_index != -1 and selected_point_index != -1:
+			_drag_selected_zoomed(event.relative)
 			get_viewport().set_input_as_handled()
 
 # -------------------------
-# Select a point or handle
+# Handle clicking in grid mode
 # -------------------------
-func _select_point_or_handle(mouse_pos: Vector2):
-	selected_curve_index = -1
-	selected_point_index = -1
-	selected_handle = ""
-	active_rect_index = -1
-
+func _handle_grid_click(mouse_pos: Vector2):
 	var cols := _calc_cols()
 	
-
 	for i in range(curves.size()):
 		var col := i % cols
 		var row := i / cols
@@ -227,28 +480,39 @@ func _select_point_or_handle(mouse_pos: Vector2):
 			padding + row * (cell_size.y + padding),
 		)
 		var rect := Rect2(origin, cell_size)
-	
 		
 		if rect.has_point(mouse_pos):
-			active_rect_index = i
+			# Zoom into this curve
+			zoomed_curve_index = i
 			selected_curve_index = i
+			queue_redraw()
+			return
 
-		var plot_origin := origin + Vector2(10, 30)
-		var plot_size := cell_size - Vector2(20, 40)
-		var curve = curves[i]
-		var bounds = _get_curve_bounds(curve)
+# -------------------------
+# Select a point or handle in zoomed mode
+# -------------------------
+func _select_point_or_handle_zoomed(mouse_pos: Vector2):
+	selected_point_index = -1
+	selected_handle = ""
 
-		# Check for point/handle clicks
-		for j in range(curve.get_point_count()):
-			var point = curve.get_point_position(j)
-			var in_offset = curve.get_point_in(j)
-			var out_offset = curve.get_point_out(j)
+	var plot_margin = 60.0
+	var plot_origin := Vector2(plot_margin, plot_margin + 20)
+	var plot_size := size - Vector2(plot_margin * 2, plot_margin * 2 + 20)
+	var curve = curves[zoomed_curve_index]
+	var bounds = _get_curve_bounds(curve)
 
-			var pos = Vector2(
-				(point.x - bounds.position.x) / bounds.size.x * plot_size.x,
-				(1 - (point.y - bounds.position.y) / bounds.size.y) * plot_size.y
-			) + plot_origin
+	# Check for point/handle clicks
+	for j in range(curve.get_point_count()):
+		var point = curve.get_point_position(j)
+		var in_offset = curve.get_point_in(j)
+		var out_offset = curve.get_point_out(j)
 
+		var pos = Vector2(
+			(point.x - bounds.position.x) / bounds.size.x * plot_size.x,
+			(1 - (point.y - bounds.position.y) / bounds.size.y) * plot_size.y
+		) + plot_origin
+
+		if show_tangents:
 			var in_pos = Vector2(
 				(point.x + in_offset.x - bounds.position.x) / bounds.size.x * plot_size.x,
 				(1 - (point.y + in_offset.y - bounds.position.y) / bounds.size.y) * plot_size.y
@@ -260,42 +524,37 @@ func _select_point_or_handle(mouse_pos: Vector2):
 			) + plot_origin
 
 			# Check handles first (smaller targets, should have priority)
-			if mouse_pos.distance_to(in_pos) <= 5:
-				selected_curve_index = i
+			if mouse_pos.distance_to(in_pos) <= 8:
 				selected_point_index = j
 				selected_handle = "in"
-				drag_offset = in_pos - mouse_pos
 				queue_redraw()
 				return
-			if mouse_pos.distance_to(out_pos) <= 5:
-				selected_curve_index = i
+			if mouse_pos.distance_to(out_pos) <= 8:
 				selected_point_index = j
 				selected_handle = "out"
-				drag_offset = out_pos - mouse_pos
 				queue_redraw()
 				return
-			# Then check main point
-			if mouse_pos.distance_to(pos) <= 8:
-				selected_curve_index = i
-				selected_point_index = j
-				selected_handle = ""
-				drag_offset = pos - mouse_pos
-				queue_redraw()
-				return
+		
+		# Then check main point
+		if mouse_pos.distance_to(pos) <= 10:
+			selected_point_index = j
+			selected_handle = ""
+			queue_redraw()
+			return
 
 	queue_redraw()
 
 # -------------------------
-# Drag a selected point or handle
+# Drag a selected point or handle in zoomed mode
 # -------------------------
-func _drag_selected(_relative: Vector2):
-	if selected_curve_index == -1 or selected_point_index == -1:
+func _drag_selected_zoomed(_relative: Vector2):
+	if selected_point_index == -1:
 		return
 
-	var curve = curves[selected_curve_index]
-	var origin := _get_curve_origin(selected_curve_index)
-	var plot_origin := origin + Vector2(10, 30)
-	var plot_size := cell_size - Vector2(20, 40)
+	var curve = curves[zoomed_curve_index]
+	var plot_margin = 60.0
+	var plot_origin := Vector2(plot_margin, plot_margin + 20)
+	var plot_size := size - Vector2(plot_margin * 2, plot_margin * 2 + 20)
 	var bounds = _get_curve_bounds(curve)
 
 	# Get mouse position in local coordinates
@@ -306,41 +565,91 @@ func _drag_selected(_relative: Vector2):
 	var norm_x = clamp(local_pos.x / plot_size.x, 0.0, 1.0)
 	var norm_y = clamp(1.0 - local_pos.y / plot_size.y, 0.0, 1.0)
 
-	# Convert to curve space
-	var curve_x = bounds.position.x + norm_x * bounds.size.x
-	var curve_y = bounds.position.y + norm_y * bounds.size.y
+	# Convert to curve space with constraints
+	var curve_x = clamp(bounds.position.x + norm_x * bounds.size.x, 0.0, 10.0)
+	var curve_y = clamp(bounds.position.y + norm_y * bounds.size.y, 0.0, 20.0)
 
 	if selected_handle == "":
-		# Moving the point itself
+		# Moving the point itself - tangents stay relative (maintain their offset)
+		var old_point = curve.get_point_position(selected_point_index)
+		var delta = Vector2(curve_x, curve_y) - old_point
+		
+		# Update point position
 		curve.set_point_position(selected_point_index, Vector2(curve_x, curve_y))
+		
+		# Tangents don't need to be updated - they're stored as offsets relative to the point
+		# so they automatically move with the point
+		
 	elif selected_handle == "in":
-		# Moving the in handle
+		# Moving the in handle - update offset relative to point
 		var p = curve.get_point_position(selected_point_index)
-		curve.set_point_in(selected_point_index, Vector2(curve_x - p.x, curve_y - p.y))
+		var offset_x = clamp(curve_x - p.x, -p.x, 10.0 - p.x)
+		var offset_y = clamp(curve_y - p.y, -p.y, 20.0 - p.y)
+		curve.set_point_in(selected_point_index, Vector2(offset_x, offset_y))
+		
 	elif selected_handle == "out":
-		# Moving the out handle
+		# Moving the out handle - update offset relative to point
 		var p = curve.get_point_position(selected_point_index)
-		curve.set_point_out(selected_point_index, Vector2(curve_x - p.x, curve_y - p.y))
+		var offset_x = clamp(curve_x - p.x, -p.x, 10.0 - p.x)
+		var offset_y = clamp(curve_y - p.y, -p.y, 20.0 - p.y)
+		curve.set_point_out(selected_point_index, Vector2(offset_x, offset_y))
 
 	queue_redraw()
-	_emit_curve_changed(curve)
 
-func _get_curve_origin(index: int) -> Vector2:
-	var cols := _calc_cols()
-	var col := index % cols
-	var row := index / cols
-	return Vector2(padding + col * (cell_size.x + padding), padding + row * (cell_size.y + padding))
+# -------------------------
+# Exit zoom mode
+# -------------------------
+func _exit_zoom_mode():
+	zoomed_curve_index = -1
+	selected_curve_index = -1
+	selected_point_index = -1
+	selected_handle = ""
+	queue_redraw()
 
-func _emit_curve_changed(_curve: Curve2D):
-	# Example: notify your character controller that this curve changed
-	# emit_signal("curve_updated", curve)
-	pass
+# -------------------------
+# Check if clicking the exit button
+# -------------------------
+func _is_clicking_exit_button(mouse_pos: Vector2) -> bool:
+	var button_size = 40.0
+	var button_pos = Vector2(size.x - button_size - 20, 20)
+	var button_rect = Rect2(button_pos, Vector2(button_size, button_size))
+	return button_rect.has_point(mouse_pos)
+
+# -------------------------
+# Check if clicking the toggle tangents button
+# -------------------------
+func _is_clicking_toggle_button(mouse_pos: Vector2) -> bool:
+	var button_size = 40.0
+	var button_pos = Vector2(size.x - button_size - 20, 70)
+	var button_rect = Rect2(button_pos, Vector2(button_size, button_size))
+	return button_rect.has_point(mouse_pos)
+
+# -------------------------
+# Check if clicking the save button
+# -------------------------
+func _is_clicking_save_button(mouse_pos: Vector2) -> bool:
+	var button_size = 40.0
+	var button_pos = Vector2(size.x - button_size - 20, 120)
+	var button_rect = Rect2(button_pos, Vector2(button_size, button_size))
+	return button_rect.has_point(mouse_pos)
 
 # -------------------------
 # Save curves
 # -------------------------
+func _save_current_curve():
+	if zoomed_curve_index == -1:
+		return
+	
+	print("SAVING CURVE: ", curve_names[zoomed_curve_index])
+	var path := curves_dir + "/" + curve_names[zoomed_curve_index] + ".tres"
+	var err = ResourceSaver.save(curves[zoomed_curve_index], path)
+	if err != OK:
+		push_error("Failed to save curve: " + path)
+	else:
+		print("Saved curve: ", path)
+
 func _save_all_curves():
-	print("SAVING CURVES")
+	print("SAVING ALL CURVES")
 	for i in range(curves.size()):
 		var path := curves_dir + "/" + curve_names[i] + ".tres"
 		var err = ResourceSaver.save(curves[i], path)

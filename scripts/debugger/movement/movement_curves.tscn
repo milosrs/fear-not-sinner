@@ -13,9 +13,9 @@ grow_vertical = 2
 [node name="Panel" type="Panel" parent="."]
 layout_mode = 0
 offset_left = 17.0
-offset_top = 833.00006
+offset_top = 8.0
 offset_right = 1278.0
-offset_bottom = 995.00006
+offset_bottom = 792.80743
 scale = Vector2(1.4980235, 1.3246471)
 script = ExtResource("2_ke8hd")
 cell_size = Vector2(150, 150)
