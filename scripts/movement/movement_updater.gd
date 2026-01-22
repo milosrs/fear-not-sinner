@@ -11,32 +11,26 @@ const States := preload("res://scripts/movement/movement_states.gd")
 @export var sprint_walk_curve: Curve2D
 @export var roll_curve: Curve2D
 
-@export var walk_duration: float
-@export var walk_stop_duration: float
-@export var sprint_duration: float
-@export var sprint_stop_duration: float
-@export var walk_sprint_duration: float
-@export var sprint_walk_duration: float
-@export var roll_duration: float
-
 func move(
 	sprite: Node2D, 
 	to_state: States.MoveState, 
 	fsm: MovementFSM, 
 	current_speed: float,
 ) -> void:
+	print("Transitioning from ", fsm.current, " to ", to_state)
 	if fsm.current == to_state:
 		return
 		
 	var transition: MovementTransition
 	var target_speed: float
+	var duration: float
 	
 	match [fsm.current, to_state]:
 		[States.MoveState.IDLE, States.MoveState.WALK]:
 			transition = MovementTransition.new(
 				fsm.current,
 				to_state,
-				walk_duration,
+				_get_duration(walk_curve),
 				walk_curve,
 			)
 			target_speed = _get_target_speed(walk_curve)
@@ -44,7 +38,7 @@ func move(
 			transition = MovementTransition.new(
 				fsm.current,
 				to_state,
-				walk_stop_duration,
+				_get_duration(walk_stop_curve),
 				walk_stop_curve,
 			)
 			target_speed = _get_target_speed(walk_stop_curve)
@@ -52,7 +46,7 @@ func move(
 			transition = MovementTransition.new(
 				fsm.current,
 				to_state,
-				walk_sprint_duration,
+				_get_duration(walk_sprint_curve),
 				walk_sprint_curve,
 			)
 			target_speed = _get_target_speed(walk_sprint_curve)
@@ -60,7 +54,7 @@ func move(
 			transition = MovementTransition.new(
 				fsm.current,
 				to_state,
-				sprint_stop_duration,
+				_get_duration(sprint_stop_curve),
 				sprint_stop_curve,
 			)
 			target_speed = _get_target_speed(sprint_stop_curve)
@@ -68,7 +62,7 @@ func move(
 			transition = MovementTransition.new(
 				fsm.current,
 				to_state,
-				sprint_walk_duration,
+				_get_duration(sprint_stop_curve),
 				sprint_stop_curve,
 			)
 			target_speed = _get_target_speed(walk_curve)
@@ -76,13 +70,13 @@ func move(
 			transition = MovementTransition.new(
 				fsm.current,
 				to_state,
-				roll_duration,
+				_get_duration(roll_curve),
 				roll_curve,
 			)
 			target_speed = _get_target_speed(roll_curve)
 		_:
 			pass
-	
+		
 	fsm.start_transition(
 		sprite,
 		transition,
@@ -91,4 +85,7 @@ func move(
 	)
 	
 func _get_target_speed(c: Curve2D) -> float:
-	return c.get_point_in(c.point_count-1).y
+	return c.get_point_position(c.point_count-1).y
+
+func _get_duration(c: Curve2D) -> float:
+	return c.get_point_position(c.point_count-1).x

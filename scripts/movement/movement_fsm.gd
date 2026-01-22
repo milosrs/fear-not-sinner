@@ -5,7 +5,6 @@ const States = preload("res://scripts/movement/movement_states.gd")
 
 var sprite:Node
 var current: States.MoveState
-var target: States.MoveState
 var transition: MovementTransition
 var transition_time: float
 var from: float
@@ -17,6 +16,9 @@ func start_transition(
 	current_speed: float,
 	target_speed: float,
 ) -> void:
+	if transition != null and transition == _transition:
+		return
+
 	sprite = _sprite
 	transition_time = 0
 	from = current_speed
@@ -24,8 +26,7 @@ func start_transition(
 	transition = _transition
 	
 	if transition != null:
-		current = _transition.from
-		target = _transition.to
+		current = _transition.to
 
 func update(delta: float) -> float:
 	if transition == null:
@@ -35,11 +36,12 @@ func update(delta: float) -> float:
 	
 	var t = clamp(transition_time/transition.duration, 0.0, 1.0)
 	if t >= 1.0:
-		current = target
 		transition = null
+		print("Speed: ", to, " t: ", t, " transition_time: ", transition_time)
 		return to
 	
-	var eased = transition.curve.sample(0, t)
-	var speed = lerp(from, to, eased)
+	var speed_point = transition.curve.sample(0, t)
 	
-	return speed
+	print("Speed: ", speed_point, " t: ", t, " transition_time: ", transition_time)
+
+	return speed_point.y

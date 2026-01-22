@@ -14,6 +14,7 @@ var selected_curve_index: int = -1
 var selected_point_index: int = -1
 var selected_handle: String = "" # "in", "out", or ""
 var drag_offset: Vector2 = Vector2.ZERO
+var selected_segment_index: int = -1  # For adding points between segments
 
 # Zoom state
 var zoomed_curve_index: int = -1
@@ -208,6 +209,20 @@ func _draw_zoomed_curve():
 		Color.WHITE
 	)
 	
+	# Draw add point button
+	var add_button_pos = Vector2(size.x - button_size - 20, 170)
+	var add_button_rect = Rect2(add_button_pos, Vector2(button_size, button_size))
+	
+	# Button background
+	draw_rect(add_button_rect, Color(0.8, 0.6, 0.2, 0.8), true)
+	draw_rect(add_button_rect, Color(1, 1, 1), false, 2)
+	
+	# Draw + for Add
+	var add_center = add_button_pos + Vector2(button_size / 2, button_size / 2)
+	var plus_size = 10.0
+	draw_line(add_center + Vector2(-plus_size, 0), add_center + Vector2(plus_size, 0), Color.WHITE, 3)
+	draw_line(add_center + Vector2(0, -plus_size), add_center + Vector2(0, plus_size), Color.WHITE, 3)
+	
 	var plot_margin = 60.0
 	var plot_origin := Vector2(plot_margin, plot_margin + 20)
 	var plot_size := size - Vector2(plot_margin * 2, plot_margin * 2 + 20)
@@ -345,6 +360,8 @@ func _draw_coordinate_grid(plot_origin: Vector2, plot_size: Vector2):
 		Color(0.8, 0.8, 0.8)
 	)
 
+var offset_vector := Vector2(-35, 20)
+
 # -------------------------
 # Draw points and tangent handles with values
 # -------------------------
@@ -361,10 +378,10 @@ func _draw_curve_points_with_values(curve: Curve2D, plot_origin: Vector2, plot_s
 		draw_circle(pos, 6, Color.YELLOW)
 		
 		# Draw point value label
-		var point_label = "X: %.2f, Y: %.2f" % [point.x, point.y]
+		var point_label = "Point[%d] - X: %.2f, Y: %.2f" % [i, point.x, point.y]
 		draw_string(
 			get_theme_default_font(),
-			pos + Vector2(-35, 20),
+			pos,
 			point_label,
 			HORIZONTAL_ALIGNMENT_LEFT,
 			-1,
@@ -388,6 +405,7 @@ func _draw_curve_points_with_values(curve: Curve2D, plot_origin: Vector2, plot_s
 				(1 - (point.y + out_offset.y - bounds.position.y) / bounds.size.y) * plot_size.y
 			) + plot_origin
 
+
 			# Draw handle lines
 			draw_line(pos, in_pos, Color.CYAN, 2)
 			draw_line(pos, out_pos, Color.MAGENTA, 2)
@@ -400,7 +418,7 @@ func _draw_curve_points_with_values(curve: Curve2D, plot_origin: Vector2, plot_s
 			var in_label = "X: %.2f, Y: %.2f" % [in_offset.x, in_offset.y]
 			draw_string(
 				get_theme_default_font(),
-				in_pos + Vector2(-35, 20),
+				in_pos,
 				in_label,
 				HORIZONTAL_ALIGNMENT_LEFT,
 				-1,
@@ -411,7 +429,7 @@ func _draw_curve_points_with_values(curve: Curve2D, plot_origin: Vector2, plot_s
 			var out_label = "X: %.2f, Y: %.2f" % [out_offset.x, out_offset.y]
 			draw_string(
 				get_theme_default_font(),
-				out_pos + Vector2(-35, 20),
+				out_pos,
 				out_label,
 				HORIZONTAL_ALIGNMENT_LEFT,
 				-1,
@@ -431,6 +449,7 @@ func _gui_input(event):
 		elif event.keycode == KEY_S and event.ctrl_pressed:
 			_save_all_curves()
 			get_viewport().set_input_as_handled()
+			return
 
 	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
@@ -449,6 +468,11 @@ func _gui_input(event):
 				# Check if clicking save button
 				if _is_clicking_save_button(event.position):
 					_save_current_curve()
+					get_viewport().set_input_as_handled()
+					return
+				# Check if clicking add point button
+				if _is_clicking_add_button(event.position):
+					_add_point_to_curve()
 					get_viewport().set_input_as_handled()
 					return
 				# In zoom mode - select point or handle
@@ -604,6 +628,9 @@ func _exit_zoom_mode():
 	selected_curve_index = -1
 	selected_point_index = -1
 	selected_handle = ""
+
+	# Reload curves from disk to ensure values are updated
+	_load_curves()
 	queue_redraw()
 
 # -------------------------
@@ -634,26 +661,102 @@ func _is_clicking_save_button(mouse_pos: Vector2) -> bool:
 	return button_rect.has_point(mouse_pos)
 
 # -------------------------
-# Save curves
+# Check if clicking the add point button
 # -------------------------
+func _is_clicking_add_button(mouse_pos: Vector2) -> bool:
+	var button_size = 40.0
+	var button_pos = Vector2(size.x - button_size - 20, 170)
+	var button_rect = Rect2(button_pos, Vector2(button_size, button_size))
+	return button_rect.has_point(mouse_pos)
+
+# -------------------------
+# Add a point between two existing points
+# -------------------------
+func _add_point_to_curve():
+	if zoomed_curve_index == -1:
+		return
+	var curve = curves[zoomed_curve_index]
+	if curve.get_point_count() < 2:
+		print("Need at least 2 points to add a point between them")
+		return
+	var point_index = 0
+	if selected_point_index != -1 and selected_point_index < curve.get_point_count() - 1:
+		point_index = selected_point_index
+	var t_start = float(point_index) / float(curve.get_point_count() - 1)
+	var t_end = float(point_index + 1) / float(curve.get_point_count() - 1)
+	var t_mid = (t_start + t_end) / 2.0
+	var new_pos = curve.sample(0, t_mid)
+	new_pos.x = clamp(new_pos.x, 0.0, 10.0)
+	new_pos.y = clamp(new_pos.y, 0.0, 20.0)
+	curve.add_point(new_pos, Vector2.ZERO, Vector2.ZERO, point_index + 1)
+	print("Added point at ", new_pos, " between points ", point_index, " and ", point_index + 1)
+	queue_redraw()
+
 func _save_current_curve():
 	if zoomed_curve_index == -1:
 		return
-	
+
 	print("SAVING CURVE: ", curve_names[zoomed_curve_index])
 	var path := curves_dir + "/" + curve_names[zoomed_curve_index] + ".tres"
-	var err = ResourceSaver.save(curves[zoomed_curve_index], path)
-	if err != OK:
-		push_error("Failed to save curve: " + path)
-	else:
-		print("Saved curve: ", path)
+
+	_save_curve_data(curves[zoomed_curve_index], path)
 
 func _save_all_curves():
 	print("SAVING ALL CURVES")
 	for i in range(curves.size()):
 		var path := curves_dir + "/" + curve_names[i] + ".tres"
-		var err = ResourceSaver.save(curves[i], path)
-		if err != OK:
-			push_error("Failed to save curve: " + path)
-		else:
-			print("Saved curve: ", path)
+
+		_save_curve_data(curves[i], path)
+
+func _save_curve_data(curve: Curve2D, path: String):
+	# Update the curve points with the displayed values using `pos`, `in_pos`, and `out_pos`
+	var bounds = _get_curve_bounds(curve)
+	
+	_calculate_real_curve_position(curve, bounds)
+
+	var err = ResourceSaver.save(curve, path)
+	if err != OK:
+		push_error("Failed to save curve: " + path)
+	else:
+		print("Saved curve: ", path)
+
+func _calculate_real_curve_position(
+	curve: Curve2D, 
+	bounds: Rect2,
+):
+	var plot_margin = 60.0
+	var plot_origin := Vector2(plot_margin, plot_margin + 20)
+	var plot_size := size - Vector2(plot_margin * 2, plot_margin * 2 + 20)
+
+	for i in range(curve.get_point_count()):
+		var point = curve.get_point_position(i)
+		var in_offset = curve.get_point_in(i)
+		var out_offset = curve.get_point_out(i)
+
+		# Calculate `pos`, `in_pos`, and `out_pos` based on the drawing logic
+		var x = (point.x - bounds.position.x) / bounds.size.x
+		var y = (point.y - bounds.position.y) / bounds.size.y
+		var pos = plot_origin + Vector2(x * plot_size.x, (1 - y) * plot_size.y)
+
+		var in_pos = Vector2(
+			(point.x + in_offset.x - bounds.position.x) / bounds.size.x * plot_size.x,
+			(1 - (point.y + in_offset.y - bounds.position.y) / bounds.size.y) * plot_size.y
+		) + plot_origin
+
+		var out_pos = Vector2(
+			(point.x + out_offset.x - bounds.position.x) / bounds.size.x * plot_size.x,
+			(1 - (point.y + out_offset.y - bounds.position.y) / bounds.size.y) * plot_size.y
+		) + plot_origin
+
+		# Convert `pos`, `in_pos`, and `out_pos` back to curve space
+		var curve_x = bounds.position.x + (pos.x - plot_origin.x) / plot_size.x * bounds.size.x
+		var curve_y = bounds.position.y + (1.0 - (pos.y - plot_origin.y) / plot_size.y) * bounds.size.y
+		curve.set_point_position(i, Vector2(curve_x, curve_y))
+
+		var in_curve_x = bounds.position.x + (in_pos.x - plot_origin.x) / plot_size.x * bounds.size.x
+		var in_curve_y = bounds.position.y + (1.0 - (in_pos.y - plot_origin.y) / plot_size.y) * bounds.size.y
+		curve.set_point_in(i, Vector2(in_curve_x - curve_x, in_curve_y - curve_y))
+
+		var out_curve_x = bounds.position.x + (out_pos.x - plot_origin.x) / plot_size.x * bounds.size.x
+		var out_curve_y = bounds.position.y + (1.0 - (out_pos.y - plot_origin.y) / plot_size.y) * bounds.size.y
+		curve.set_point_out(i, Vector2(out_curve_x - curve_x, out_curve_y - curve_y))
