@@ -42,8 +42,6 @@ func _update_location(delta: float) -> void:
 		_:
 			velocity.x = 0
 	
-	# Clamp position after move_and_slide() processes it
-	position = position.clamp(Vector2.ZERO, screen_size)
 	sprite.play()
 		
 

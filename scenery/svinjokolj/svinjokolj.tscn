@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://c5bsval12633n"]
+[gd_scene load_steps=10 format=3 uid="uid://c5bsval12633n"]
 
 [ext_resource type="Texture2D" uid="uid://kqolqe1uw2jw" path="res://scenery/svinjokolj/terrain.png" id="1_0nglf"]
 [ext_resource type="Texture2D" uid="uid://qpd25rll0vct" path="res://scenery/svinjokolj/background.png" id="1_vkdkx"]
@@ -7,49 +7,80 @@
 [ext_resource type="Texture2D" uid="uid://nbyfx761dtjd" path="res://scenery/svinjokolj/tree_front.png" id="4_orocu"]
 [ext_resource type="PackedScene" uid="uid://csl2lau3vjc8a" path="res://player.tscn" id="6_orocu"]
 [ext_resource type="AudioStream" uid="uid://c4m2harecunfo" path="res://scenery/svinjokolj/Svinjska daca.mp3" id="7_npmco"]
+[ext_resource type="Script" uid="uid://b0no2hakniiik" path="res://scenery/svinjokolj/camera.gd" id="8_cb6ql"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_046w8"]
-size = Vector2(383, 9)
+[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_cb6ql"]
+normal = Vector2(-0.00519426, -0.9999865)
+distance = 3.686442
 
 [node name="Svinjokolj" type="Node2D"]
 
-[node name="Background" type="Sprite2D" parent="."]
+[node name="TileMapLayer" type="TileMapLayer" parent="."]
+
+[node name="ParallaxBackground" type="ParallaxBackground" parent="TileMapLayer"]
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="TileMapLayer/ParallaxBackground"]
+motion_scale = Vector2(0.1, 0.1)
+motion_mirroring = Vector2(1920, 0)
+
+[node name="Background" type="Sprite2D" parent="TileMapLayer/ParallaxBackground/ParallaxLayer"]
 position = Vector2(963.5001, 537.00006)
 scale = Vector2(5.0130215, 4.962963)
 texture = ExtResource("1_vkdkx")
 
-[node name="Mountains" type="Sprite2D" parent="."]
+[node name="ParallaxLayer2" type="ParallaxLayer" parent="TileMapLayer/ParallaxBackground"]
+motion_scale = Vector2(0.2, 0.2)
+motion_mirroring = Vector2(1920, 0)
+
+[node name="Mountains" type="Sprite2D" parent="TileMapLayer/ParallaxBackground/ParallaxLayer2"]
 position = Vector2(964, 538)
 scale = Vector2(5.015625, 4.953704)
 texture = ExtResource("2_3pwu6")
 
-[node name="TreeBack" type="Sprite2D" parent="."]
+[node name="ParallaxLayer3" type="ParallaxLayer" parent="TileMapLayer/ParallaxBackground"]
+motion_scale = Vector2(0.3, 0.3)
+motion_mirroring = Vector2(1920, 0)
+
+[node name="TreeBack" type="Sprite2D" parent="TileMapLayer/ParallaxBackground/ParallaxLayer3"]
 position = Vector2(960, 534.5)
 scale = Vector2(4.9895835, 5.023148)
 texture = ExtResource("3_046w8")
 
-[node name="TreeFront" type="Sprite2D" parent="."]
+[node name="ParallaxLayer4" type="ParallaxLayer" parent="TileMapLayer/ParallaxBackground"]
+motion_scale = Vector2(0.4, 0.4)
+motion_mirroring = Vector2(1920, 0)
+
+[node name="TreeFront" type="Sprite2D" parent="TileMapLayer/ParallaxBackground/ParallaxLayer4"]
 position = Vector2(957, 525.5)
 scale = Vector2(4.9739585, 4.9305553)
 texture = ExtResource("4_orocu")
+
+[node name="ParallaxLayer5" type="ParallaxLayer" parent="TileMapLayer/ParallaxBackground"]
+motion_mirroring = Vector2(1920, 0)
+
+[node name="Terrain" type="StaticBody2D" parent="TileMapLayer/ParallaxBackground/ParallaxLayer5"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TileMapLayer/ParallaxBackground/ParallaxLayer5/Terrain"]
+position = Vector2(1922, 1047.5)
+scale = Vector2(5, 5)
+shape = SubResource("WorldBoundaryShape2D_cb6ql")
+debug_color = Color(0.91083586, 0.0001037699, 0.73041797, 0.41960785)
+
+[node name="TerrainImg" type="Sprite2D" parent="TileMapLayer/ParallaxBackground/ParallaxLayer5/Terrain"]
+position = Vector2(961, 527.50006)
+scale = Vector2(5, 5.069444)
+texture = ExtResource("1_0nglf")
 
 [node name="CharacterBody2D" parent="." instance=ExtResource("6_orocu")]
 position = Vector2(955, 80)
 scale = Vector2(3, 3)
 
-[node name="Terrain" type="StaticBody2D" parent="."]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain"]
-position = Vector2(963.5, 1047.5)
-scale = Vector2(5, 5)
-shape = SubResource("RectangleShape2D_046w8")
-debug_color = Color(0.91083586, 0.0001037699, 0.73041797, 0.41960785)
-
-[node name="TerrainImg" type="Sprite2D" parent="Terrain"]
-position = Vector2(961, 527.50006)
-scale = Vector2(5, 5.069444)
-texture = ExtResource("1_0nglf")
-
 [node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource("7_npmco")
 autoplay = true
+
+[node name="Camera2D" type="Camera2D" parent="." node_paths=PackedStringArray("player")]
+position = Vector2(1607, 534)
+drag_horizontal_enabled = true
+script = ExtResource("8_cb6ql")
+player = NodePath("../CharacterBody2D")
