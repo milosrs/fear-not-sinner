@@ -233,9 +233,10 @@ func _draw_zoomed_curve():
 	
 	# Draw the curve line
 	var prev: Variant = null
+	var baked_length = curve.get_baked_length()
 	for i in range(samples + 1):
 		var t = i / samples
-		var sample = curve.sample(0, t)
+		var sample = curve.sample_baked(baked_length * t)
 		var x = (sample.x - bounds.position.x) / bounds.size.x
 		var y = (sample.y - bounds.position.y) / bounds.size.y
 		var p = plot_origin + Vector2(x * plot_size.x, (1 - y) * plot_size.y)
@@ -283,9 +284,10 @@ func _draw_curve_cell(curve: Curve2D, title: String, origin: Vector2, active_rec
 	_draw_coordinate_grid(plot_origin, plot_size)
 
 	var prev: Variant = null
+	var baked_length = curve.get_baked_length()
 	for i in range(samples + 1):
 		var t = i / samples
-		var sample = curve.sample(0, t)
+		var sample = curve.sample_baked(baked_length * t)
 		var x = (sample.x - bounds.position.x) / bounds.size.x
 		var y = (sample.y - bounds.position.y) / bounds.size.y
 		var p = plot_origin + Vector2(x * plot_size.x, (1 - y) * plot_size.y)
