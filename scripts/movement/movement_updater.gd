@@ -23,7 +23,6 @@ func move(
 		
 	var transition: MovementTransition
 	var target_speed: float
-	var duration: float
 	
 	match [fsm.current, to_state]:
 		[States.MoveState.IDLE, States.MoveState.WALK]:

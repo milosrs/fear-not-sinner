@@ -1,10 +1,11 @@
-extends Area2D
+extends CharacterBody2D
 const States := preload("res://scripts/movement/movement_states.gd")
 @onready var sprite := $player_sprite
 
 @export var speed := 100.0
 @export var movement_fsm: MovementFSM
 @export var movement_updater: MovementUpdate
+@export var jump_controller: JumpController
 var movement_states := States.new()
 
 var screen_size
