@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://c4m2harecunfo"
+path="res://.godot/imported/Svinjska daca.mp3-fc9269d0e52492a760537eca344f95b0.mp3str"
+
+[deps]
+
+source_file="res://scenery/svinjokolj/Svinjska daca.mp3"
+dest_files=["res://.godot/imported/Svinjska daca.mp3-fc9269d0e52492a760537eca344f95b0.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

@@ -32,12 +32,15 @@ func update(delta: float) -> float:
 	if transition == null:
 		return to
 	
+	if transition.curve == null:
+		transition = null
+		return to
+	
 	transition_time += delta
 	
 	var t = clamp(transition_time/transition.duration, 0.0, 1.0)
 	if t >= 1.0:
 		transition = null
-		print("Speed: ", to, " t: ", t, " transition_time: ", transition_time)
 		return to
 	
 	var speed_point = transition.curve.sample(0, t)

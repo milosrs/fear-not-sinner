@@ -2,7 +2,7 @@ extends CharacterBody2D
 const States := preload("res://scripts/movement/movement_states.gd")
 @onready var sprite := $player_sprite
 
-@export var speed := 100.0
+@export var speed_multiplier := 100.0
 @export var movement_fsm: MovementFSM
 @export var movement_updater: MovementUpdate
 @export var jump_controller: JumpController
@@ -26,19 +26,23 @@ func _process(_delta: float) -> void:
 	
 func _physics_process(delta: float) -> void:
 	_update_location(delta)
+	jump_controller.update(self, delta)
+	move_and_slide()
 	
 func _update_location(delta: float) -> void:
-	movement_updater.move(self, move_state, movement_fsm, speed)
+	movement_updater.move(self, move_state, movement_fsm, velocity.x)
 	var new_speed = movement_fsm.update(delta)
-	if new_speed != speed:
-		speed = new_speed
 	
+	# Use velocity.x instead of modifying position directly
 	match direction:
 		States.Direction.RIGHT:
-			position.x += speed
+			velocity.x = new_speed * speed_multiplier
 		States.Direction.LEFT:
-			position.x -= speed
+			velocity.x = -new_speed * speed_multiplier
+		_:
+			velocity.x = 0
 	
+	# Clamp position after move_and_slide() processes it
 	position = position.clamp(Vector2.ZERO, screen_size)
 	sprite.play()
 		
@@ -77,8 +81,9 @@ func _update_movement_state() -> void:
 
 func _update_animation() -> void:
 	sprite.flip_h = direction == States.Direction.LEFT
-		
+	
 	var target_anim := _state_to_animation(move_state)
+	print("Target animation: ", target_anim)
 	
 	if sprite.animation != target_anim:
 		sprite.play(target_anim)
@@ -135,3 +140,6 @@ func _play_sound(audio: AudioStreamPlayer2D, expected_pitch: float) -> void:
 	
 	audio.play()
 	
+
+func release_animation_lock() -> void:
+	animation_lock = false
