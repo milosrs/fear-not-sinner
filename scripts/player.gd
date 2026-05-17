@@ -32,7 +32,8 @@ func _physics_process(delta: float) -> void:
 func _update_location(delta: float) -> void:
 	movement_updater.move(self, move_state, movement_fsm, velocity.x)
 	var new_speed = movement_fsm.update(delta)
-	
+
+
 	# Use velocity.x instead of modifying position directly
 	match direction:
 		States.Direction.RIGHT:
@@ -41,8 +42,7 @@ func _update_location(delta: float) -> void:
 			velocity.x = -new_speed * speed_multiplier
 		_:
 			velocity.x = 0
-	
-	sprite.play()
+
 		
 
 func _update_movement_state() -> void:
@@ -62,6 +62,9 @@ func _update_movement_state() -> void:
 	var standingup := Input.is_action_just_released("crouch")
 	var jumping := Input.is_action_just_pressed("jump")
 
+	# Debug: log input flags to diagnose crouch/walk_crouch selection
+	print("[DBG_STATE] walking:", walking, " crouching:", crouching, " standingup:", standingup, " animation_lock:", animation_lock)
+
 	if jumping:
 		move_state = States.MoveState.JUMP
 		animation_lock = true
@@ -75,14 +78,15 @@ func _update_movement_state() -> void:
 		move_state = States.MoveState.STAND_UP
 		animation_lock = true
 	else:
-		move_state = States.MoveState.IDLE
+		if move_state == States.MoveState.CROUCH or move_state == States.MoveState.WALK_CROUCH:
+			move_state = States.MoveState.IDLE
+		else:
+			move_state = States.MoveState.IDLE
 
 func _update_animation() -> void:
 	sprite.flip_h = direction == States.Direction.LEFT
 	
 	var target_anim := _state_to_animation(move_state)
-	print("Target animation: ", target_anim)
-	
 	if sprite.animation != target_anim:
 		sprite.play(target_anim)
 

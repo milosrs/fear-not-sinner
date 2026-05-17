@@ -44,7 +44,4 @@ func update(delta: float) -> float:
 		return to
 	
 	var speed_point = transition.curve.sample(0, t)
-	
-	print("Speed: ", speed_point, " t: ", t, " transition_time: ", transition_time)
-
 	return speed_point.y

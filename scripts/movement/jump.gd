@@ -1,14 +1,14 @@
 extends Resource
 class_name JumpController
 
-@export var gravity: float = 2600.0
-@export var time_to_apex: float = 0.32
-@export var fall_speed_multiplier: float = 2.4
-@export var terminal_velocity: float = 1800.0
+@export var gravity: float = 2000.0
+@export var time_to_apex: float = 0.4
+@export var fall_speed_multiplier: float = 1.8
+@export var terminal_velocity: float = 2000.0
 
 @export var coyote_time: float = 0.1
 @export var buffer_time: float = 0.1
-@export var variable_height: bool = true
+@export var variable_height: bool = true  # Player can shorten jump by releasing button
 
 var jump_velocity: float
 var coyote_timer: float = 0.0
